@@ -3,6 +3,6 @@ module com.example.zest {
     requires javafx.fxml;
 
 
-    opens com.example.zest to javafx.fxml;
-    exports com.example.zest;
+    opens com.zest to javafx.fxml;
+    exports com.zest;
 }

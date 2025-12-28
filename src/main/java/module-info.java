@@ -1,7 +1,7 @@
-module zest { // Simplified module name to match your project root
+module zest { 
     requires javafx.controls;
     requires javafx.fxml;
-    requires transitive javafx.graphics;// Fixes the Stage accessibility warning
+    requires transitive javafx.graphics;
     requires transitive java.sql;
  // Essential for DBConnection and DataService
     requires mysql.connector.j; // Required for the actual MySQL driver handshake

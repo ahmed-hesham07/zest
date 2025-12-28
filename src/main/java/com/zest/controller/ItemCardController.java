@@ -18,14 +18,21 @@ public class ItemCardController {
 
     public void setData(MenuItem item) {
         nameLabel.setText(item.getName());
-        priceLabel.setText(item.getPrice() + " EGP"); 
-        
-        // Try to load image from resources
+        priceLabel.setText(item.getPrice() + " EGP");
+
+        // Fix: Handle missing images gracefully
         try {
-            String path = "/images/" + item.getImageUrl();
-            itemImage.setImage(new Image(getClass().getResourceAsStream(path)));
+            String imagePath = "/images/" + item.getImageUrl();
+            // Check if resource exists before creating Image to avoid NPE
+            if (getClass().getResource(imagePath) != null) {
+                itemImage.setImage(new Image(getClass().getResourceAsStream(imagePath)));
+            } else {
+                System.err.println("Image missing: " + imagePath);
+                // Optional: Set a default "placeholder" image here
+            }
         } catch (Exception e) {
-            System.out.println("No image found for " + item.getName());
+            System.err.println("Error loading image for " + item.getName());
+            e.printStackTrace();
         }
     }
 }

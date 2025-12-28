@@ -7,7 +7,6 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.VBox?>
 
-
 <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.zest.controller.CartController">
    <center>
       <ScrollPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
@@ -24,7 +23,8 @@
          <children>
             <Label text="Order Summary" />
             <Label fx:id="totalPriceLabel" text="price" />
-            <Button fx:id="checkoutBtn" mnemonicParsing="false" text="Checkout" />
+            <Button fx:id="checkoutBtn" mnemonicParsing="false" style="-fx-background-color: #ff9f1c; -fx-text-fill: white; -fx-font-weight: bold;" text="Checkout" />
+            <Button mnemonicParsing="false" onAction="#handleBackToHome" prefHeight="26.0" prefWidth="101.0" style="-fx-background-color: #ff9f1c; -fx-text-fill: black; -fx-font-weight: bold;" text="Home" />
          </children>
          <BorderPane.margin>
             <Insets />

@@ -25,7 +25,11 @@ public class DataService {
         List<MenuItem> items = new ArrayList<>();
         Connection conn = dbConnection.getConnection();
         
-        if (conn == null) return items;
+        // DEBUG: Check connection
+        if (conn == null) {
+            System.err.println("CRITICAL: DB Connection is NULL in getAllMenuItems!"); 
+            return items;
+        }
 
         String sql = "SELECT * FROM menu_items";
         
@@ -33,7 +37,6 @@ public class DataService {
              ResultSet rs = pstmt.executeQuery()) {
 
             while (rs.next()) {
-                // Map columns to MenuItem object
                 MenuItem item = new MenuItem(
                     rs.getInt("id"),
                     rs.getString("name"),
@@ -42,10 +45,16 @@ public class DataService {
                     rs.getString("image_url")
                 );
                 items.add(item);
+                // DEBUG: Confirm row fetch
+                System.out.println("Fetched Item: " + item.getName()); 
             }
         } catch (SQLException e) {
+            System.err.println("SQL Error in getAllMenuItems:"); 
             e.printStackTrace();
         }
+        
+        // DEBUG: Final count
+        System.out.println("DataService returning " + items.size() + " items.");
         return items;
     }
     /**

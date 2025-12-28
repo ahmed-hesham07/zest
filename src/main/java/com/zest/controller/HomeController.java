@@ -31,23 +31,22 @@ public class HomeController {
     }
 
     private void loadMenu() {
-        // 1. Fetch items from MySQL
         List<MenuItem> items = dataService.getAllMenuItems();
+        System.out.println("HomeController received " + items.size() + " items."); // DEBUG
 
         try {
             for (MenuItem item : items) {
-                // 2. Load Hamdy's Card template
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/ItemCard.fxml"));
                 VBox card = loader.load();
 
-                // 3. Inject the Whopper/Pizza data into the card
                 ItemCardController cardController = loader.getController();
                 cardController.setData(item);
 
-                // 4. Add to the grid
                 menuContainer.getChildren().add(card);
+                System.out.println("Added card for " + item.getName() + " to FlowPane."); // DEBUG
             }
         } catch (Exception e) {
+            System.err.println("Error loading ItemCard.fxml:");
             e.printStackTrace();
         }
     }

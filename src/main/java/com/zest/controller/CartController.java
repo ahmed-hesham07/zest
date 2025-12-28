@@ -17,6 +17,16 @@ public class CartController {
         // Runs as soon as the FXML is loaded
         refreshCart();
     }
+    @FXML
+    private void handleBackToHome() {
+        try {
+            // Use the engine to switch back to the Menu
+            com.zest.Main.switchScene("/fxml/Home.fxml");
+        } catch (java.io.IOException e) {
+            e.printStackTrace();
+            System.err.println("CRITICAL: Could not load Home.fxml from Cart.");
+        }
+    }
 
     /**
      * Clears the list and re-populates it based on current CartManager data

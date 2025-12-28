@@ -8,28 +8,40 @@ import javafx.stage.Stage;
 import java.io.IOException;
 
 public class Main extends Application {
-    private static Stage stg; // Static stage to allow switching from anywhere
+    private static Stage stg; // Static reference to the main window
 
     @Override
     public void start(Stage primaryStage) {
         stg = primaryStage;
         primaryStage.setResizable(false);
+        primaryStage.setTitle("Zest - Food Ordering System");
+        
         try {
-            // Start at Login
+            // Correctly load the initial Login screen
             switchScene("/fxml/Login.fxml");
-            primaryStage.setTitle("Zest - Food Ordering System");
             primaryStage.show();
         } catch (IOException e) {
             e.printStackTrace();
+            System.err.println("CRITICAL: Could not load Login.fxml. Check the file path!");
         }
     }
 
     /**
-     * The "Engine" for navigation
+     * The Smart Navigator: Handles both initial load and page switching
      */
     public static void switchScene(String fxml) throws IOException {
-        Parent pane = FXMLLoader.load(Main.class.getResource(fxml));
-        stg.getScene().setRoot(pane);
+        // Load the new FXML file
+        FXMLLoader loader = new FXMLLoader(Main.class.getResource(fxml));
+        Parent pane = loader.load();
+
+        if (stg.getScene() == null) {
+            // FIRST RUN: The stage has no scene, so we create it.
+            Scene scene = new Scene(pane);
+            stg.setScene(scene);
+        } else {
+            // NAVIGATION: The scene exists, so we just replace the content (root).
+            stg.getScene().setRoot(pane);
+        }
     }
 
     public static void main(String[] args) {

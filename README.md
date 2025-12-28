@@ -4,7 +4,9 @@
 #### **Team:**
 * **Ahmed Hesham** (Backend Architect & Database) 
 * **Ziad Osama** (User Management & Admin Logic) 
-* **Hamdy Ashraf** (Customer Experience & Menu Logic) 
+* **Hamdy Ashraf** (Customer Experience & Menu Logic)
+
+> 📋 **See [CHANGELOG.md](CHANGELOG.md) for detailed documentation of all changes and improvements made to this project.** 
 
 
 
@@ -35,29 +37,19 @@ Ensure you have the following installed before writing code:
 
 * **Java JDK 17+** (Required for JavaFX).
 * **IntelliJ IDEA** (Community or Ultimate).
-* **MySQL Server** (or SQLite).
 * **SceneBuilder** (For editing FXML files).
 
-### 2. Database Initialization (Crucial)
+### 2. Database Setup (Automatic!)
 
-Before running the app, you must create the database.
+The application uses **SQLite** and automatically creates the database file (`zest_db.sqlite`) in the project root when you first run it. 
 
-1. Open **MySQL Workbench**.
-2. Run the full SQL script provided in the project chat/documentation.
-3. **Verify:** You should see a database named `zest_db` with tables: `users`, `restaurants`, `menu_items`, `orders`.
+**No manual database setup required!** The database will be created with all tables and seed data automatically on first launch.
+
+The database file will be created at: `zest_db.sqlite` (in your project root directory)
 
 ### 3. Dependency Check
 
-Ensure your `pom.xml` contains the MySQL connector. If the app crashes on startup, check this first!
-
-```xml
-<dependency>
-    <groupId>mysql</groupId>
-    <artifactId>mysql-connector-j</artifactId>
-    <version>8.2.0</version>
-</dependency>
-
-```
+The project uses SQLite JDBC driver (automatically included in `pom.xml`). No additional database server installation needed!
 
 ---
 
@@ -123,9 +115,9 @@ When asked during the discussion, point to these specific files:
 
 ## ⚡ How to Run
 
-1. **Ahmed:** Start the MySQL Server.
-2. **Everyone:** Open `Main.java` in IntelliJ.
-3. Click the green **Run** button.
+1. **Everyone:** Open `Main.java` in IntelliJ.
+2. Click the green **Run** button.
+3. The database will be automatically created on first run with seed data.
 4. **Login Credentials (Dummy Data):**
 * *Email:* `ziad@gmail.com`
 * *Password:* `123`
@@ -134,6 +126,7 @@ When asked during the discussion, point to these specific files:
 
 ## 🐛 Troubleshooting
 
-* **"Table doesn't exist"**: You forgot to run the SQL script in Workbench.
-* **"No suitable driver found"**: You are missing the dependency in `pom.xml`. Reload Maven.
+* **"Table doesn't exist"**: The database should auto-create on first run. If this error persists, delete `zest_db.sqlite` and restart the application.
+* **"No suitable driver found"**: Reload Maven dependencies in IntelliJ (right-click `pom.xml` → Maven → Reload Project).
 * **"FXML file not found"**: Ensure your FXML files are inside `src/main/resources/fxml/` and the path in `Main.java` is correct (`/fxml/Login.fxml`).
+* **Database file location**: The SQLite database file (`zest_db.sqlite`) is created in your project root directory. You can delete it to reset the database.

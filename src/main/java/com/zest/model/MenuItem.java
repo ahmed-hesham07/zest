@@ -16,7 +16,9 @@ public class MenuItem {
     }
 
     // These "Getters" fix Hamdy's red errors
+    public int getId() { return id; }
     public String getName() { return name; }
     public double getPrice() { return price; }
+    public String getDescription() { return description; }
     public String getImageUrl() { return imageUrl; }
 }

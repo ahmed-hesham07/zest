@@ -4,7 +4,7 @@ module zest {
     requires transitive javafx.graphics;
     requires transitive java.sql;
  // Essential for DBConnection and DataService
-    requires mysql.connector.j; // Required for the actual MySQL driver handshake
+ // SQLite JDBC is an automatic module, no explicit requires needed
 
     // Allow JavaFX to "see" your controllers and FXML files
     opens com.zest.controller to javafx.fxml; 

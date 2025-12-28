@@ -37,3 +37,9 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+### SQLite Database ###
+*.sqlite
+*.sqlite3
+*.db
+zest_db.sqlite

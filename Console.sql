@@ -1,5 +1,10 @@
 -- ==========================================
--- 1. SETUP DATABASE (Clean Slate)
+-- NOTE: This file is DEPRECATED
+-- The application now uses SQLite with auto-initialization
+-- Database is automatically created on first run
+-- This file is kept for reference only (MySQL syntax)
+-- ==========================================
+-- 1. SETUP DATABASE (Clean Slate) - MySQL Syntax
 -- ==========================================
 DROP DATABASE IF EXISTS zest_db;
 CREATE DATABASE zest_db;
@@ -39,6 +44,7 @@ CREATE TABLE menu_items (
     name VARCHAR(100) NOT NULL,
     price DOUBLE NOT NULL,
     description VARCHAR(255),
+    image_url VARCHAR(255) DEFAULT 'default_item.png',
     FOREIGN KEY (restaurant_id) REFERENCES restaurants(id) ON DELETE CASCADE
 );
 

@@ -36,6 +36,8 @@ public class LoginController {
         boolean isAuthenticated = dataService.login(email, password);
 
         if (isAuthenticated) {
+            // Store current user email for session management
+            HistoryController.setCurrentUserEmail(email);
             try {
                 System.out.println("Login Successful! Opening Home...");
                 // swap the screen

@@ -3,8 +3,11 @@ package com.zest.dao;
 import com.zest.model.Order;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.util.List;
+import java.util.ArrayList;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import com.zest.model.MenuItem;
 
 /**
  * Centralized Data Service for all SQL operations
@@ -17,6 +20,34 @@ public class DataService {
         this.dbConnection = DBConnection.getInstance();
     }
     
+ // --- NEW METHOD: FETCHES MENU FROM DB ---
+    public List<MenuItem> getAllMenuItems() {
+        List<MenuItem> items = new ArrayList<>();
+        Connection conn = dbConnection.getConnection();
+        
+        if (conn == null) return items;
+
+        String sql = "SELECT * FROM menu_items";
+        
+        try (PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+
+            while (rs.next()) {
+                // Map columns to MenuItem object
+                MenuItem item = new MenuItem(
+                    rs.getInt("id"),
+                    rs.getString("name"),
+                    rs.getDouble("price"),
+                    rs.getString("description"),
+                    rs.getString("image_url")
+                );
+                items.add(item);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return items;
+    }
     /**
      * Authenticate user by checking email and password in the users table
      * @param email User's email address

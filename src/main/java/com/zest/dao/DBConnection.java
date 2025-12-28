@@ -17,7 +17,7 @@ public class DBConnection {
     // Database connection details
     private static final String DB_URL = "jdbc:mysql://localhost:3306/zest_db";
     private static final String DB_USER = "root";
-    private static final String DB_PASSWORD = "Admin@1179";
+    private static final String DB_PASSWORD = "1234";
     
     /**
      * Private constructor to prevent instantiation from outside

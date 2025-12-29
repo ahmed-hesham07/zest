@@ -45,6 +45,8 @@ package com.zest.dao;
 import com.zest.model.Order; // UML Class: Order model
 import com.zest.model.OrderItem; // UML Class: OrderItem with Snapshot Pattern
 import com.zest.model.Restaurant; // UML Class: Restaurant model
+import com.zest.model.Review; // UML Class: Review model
+import com.zest.model.Customer; // UML Class: Customer model
 import java.sql.Connection; // JDBC Connection interface
 import java.sql.PreparedStatement; // Prepared statements for SQL queries
 import java.util.List; // List interface
@@ -357,6 +359,45 @@ public class DataService {
     }
     
     /**
+     * getUserNameByEmail() - Gets user name by email address
+     * 
+     * PURPOSE:
+     * Retrieves user name from database using email address.
+     * Used by controllers to get user name for display.
+     * 
+     * @param email User's email address
+     * @return User name if found, null if not found
+     */
+    public String getUserNameByEmail(String email) {
+        Connection conn = dbConnection.getConnection(); // Get database connection
+        if (conn == null) {
+            System.err.println("Database connection is not available");
+            return null; // Connection failed
+        }
+        
+        String sql = "SELECT name FROM users WHERE email = ?"; // SQL query
+        
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, email); // Set email parameter
+            ResultSet rs = pstmt.executeQuery(); // Execute query
+            if (rs.next()) {
+                String userName = rs.getString("name"); // Get user name
+                rs.close(); // Close result set
+                return userName; // Return user name
+            }
+            rs.close();
+        } catch (SQLException e) {
+            /**
+             * ERROR HANDLING:
+             * Log error if query fails
+             */
+            System.err.println("Error getting user name:");
+            e.printStackTrace();
+        }
+        return null; // User not found
+    }
+    
+    /**
      * getOrderHistory() - Gets order history for a user
      * 
      * PURPOSE:
@@ -651,7 +692,7 @@ public class DataService {
              */
             String sql = "INSERT INTO orders (user_id, total_price, total_amount, status) VALUES (?, ?, ?, ?)"; // Insert query
             
-            try (PreparedStatement pstmt = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setInt(1, order.getUserId()); // Set user ID
                 double totalAmount = order.getTotalAmount(); // Get total amount
                 pstmt.setDouble(2, totalAmount); // total_price (backward compatibility)
@@ -661,12 +702,14 @@ public class DataService {
                 int rowsAffected = pstmt.executeUpdate(); // Execute insert
                 if (rowsAffected > 0) {
                     /**
-                     * STEP 3: GET GENERATED ORDER ID
-                     * Get the auto-generated order ID from database
+                     * STEP 3: GET GENERATED ORDER ID (SQLite compatible)
+                     * SQLite doesn't support getGeneratedKeys(), so use last_insert_rowid()
+                     * This is the SQLite-specific way to get the last inserted row ID
                      */
-                    try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
-                        if (generatedKeys.next()) {
-                            int orderId = generatedKeys.getInt(1); // Get generated order ID
+                    try (PreparedStatement idStmt = conn.prepareStatement("SELECT last_insert_rowid()")) {
+                        ResultSet rs = idStmt.executeQuery(); // Execute query
+                        if (rs.next()) {
+                            int orderId = rs.getInt(1); // Get generated order ID
                             
                             /**
                              * STEP 4: SAVE ORDERITEMS (SNAPSHOT PATTERN)
@@ -733,8 +776,10 @@ public class DataService {
                             
                             System.out.println("Order saved successfully with ID: " + orderId); // Log success
                             
+                            rs.close(); // Close result set
                             return orderId; // Return order ID
                         }
+                        rs.close(); // Close result set if no row found
                     }
                 } else {
                     /**
@@ -763,5 +808,321 @@ public class DataService {
             e.printStackTrace();
         }
         return -1; // Return -1 if save failed
+    }
+    
+    /**
+     * saveReview() - Saves a review to database
+     * 
+     * PURPOSE:
+     * Saves a customer review for a restaurant to the database.
+     * Used when customers submit reviews after orders.
+     * 
+     * UML CLASSES USED:
+     * - Review: Gets review data (restaurantId, customerId, rating, comment)
+     * 
+     * DATABASE OPERATIONS:
+     * - INSERT INTO reviews (restaurant_id, customer_id, rating, comment, review_date)
+     * - Validates rating is between 1 and 5
+     * - Sets review_date to current timestamp
+     * 
+     * @param review The Review object to be saved
+     * @return The ID of the newly created review, or -1 if failed
+     */
+    public int saveReview(Review review) {
+        Connection conn = dbConnection.getConnection(); // Get database connection
+        if (conn == null) {
+            System.err.println("Database connection is not available");
+            return -1; // Connection failed
+        }
+        
+        /**
+         * VALIDATION: Check review is valid
+         * Ensure rating is between 1 and 5
+         */
+        if (review.getRating() < 1 || review.getRating() > 5) {
+            System.err.println("Invalid rating: must be between 1 and 5");
+            return -1; // Invalid rating
+        }
+        
+        /**
+         * GET CUSTOMER ID:
+         * Need customer ID from author to save review
+         */
+        int customerId = -1;
+        if (review.getAuthor() != null) {
+            /**
+             * GET CUSTOMER ID FROM EMAIL:
+             * Get customer ID from database using author's email
+             */
+            String customerEmail = review.getAuthor().getEmail();
+            if (customerEmail != null && !customerEmail.isEmpty()) {
+                customerId = getUserIdByEmail(customerEmail);
+            }
+        }
+        
+        if (customerId == -1) {
+            System.err.println("Could not find customer ID for review");
+            return -1; // Customer not found
+        }
+        
+        String sql = "INSERT INTO reviews (restaurant_id, customer_id, rating, comment, review_date) VALUES (?, ?, ?, ?, ?)"; // Insert query
+        
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, review.getRestaurantId()); // Set restaurant ID
+            pstmt.setInt(2, customerId); // Set customer ID
+            pstmt.setInt(3, review.getRating()); // Set rating
+            pstmt.setString(4, review.getComment()); // Set comment
+            pstmt.setString(5, review.getReviewDate()); // Set review date
+            
+            int rowsAffected = pstmt.executeUpdate(); // Execute insert
+            if (rowsAffected > 0) {
+                /**
+                 * GET GENERATED REVIEW ID (SQLite compatible):
+                 * SQLite doesn't support getGeneratedKeys(), so use last_insert_rowid()
+                 * This is the SQLite-specific way to get the last inserted row ID
+                 */
+                try (PreparedStatement idStmt = conn.prepareStatement("SELECT last_insert_rowid()")) {
+                    ResultSet rs = idStmt.executeQuery(); // Execute query
+                    if (rs.next()) {
+                        int reviewId = rs.getInt(1); // Get generated review ID
+                        System.out.println("Review saved successfully with ID: " + reviewId); // Log success
+                        rs.close(); // Close result set
+                        return reviewId; // Return review ID
+                    }
+                    rs.close(); // Close result set
+                }
+            }
+        } catch (SQLException e) {
+            /**
+             * ERROR HANDLING:
+             * Log error if save fails
+             */
+            System.err.println("Error saving review to database:");
+            e.printStackTrace();
+        }
+        
+        return -1; // Return -1 if save failed
+    }
+    
+    /**
+     * getReviewsByRestaurant() - Gets all reviews for a restaurant
+     * 
+     * PURPOSE:
+     * Retrieves all reviews for a specific restaurant from database.
+     * Used to display reviews on restaurant pages.
+     * 
+     * UML CLASSES USED:
+     * - Review: Creates Review objects from database rows
+     * - Customer: Creates Customer objects for review authors
+     * 
+     * DATABASE OPERATIONS:
+     * - SELECT * FROM reviews WHERE restaurant_id = ? ORDER BY review_date DESC
+     * - Joins with users table to get customer information
+     * 
+     * @param restaurantId The ID of the restaurant
+     * @return List of Review objects for that restaurant
+     */
+    public List<Review> getReviewsByRestaurant(int restaurantId) {
+        List<Review> reviews = new ArrayList<>(); // Create list for results
+        Connection conn = dbConnection.getConnection(); // Get database connection
+        if (conn == null) {
+            System.err.println("Database connection is not available");
+            return reviews; // Return empty list
+        }
+        
+        /**
+         * SQL QUERY:
+         * Join reviews with users table to get customer information
+         * Order by review_date DESC to show newest reviews first
+         */
+        String sql = """
+            SELECT r.id, r.restaurant_id, r.customer_id, r.rating, r.comment, r.review_date,
+                   u.id as user_id, u.name as user_name, u.email as user_email
+            FROM reviews r
+            JOIN users u ON r.customer_id = u.id
+            WHERE r.restaurant_id = ?
+            ORDER BY r.review_date DESC
+        """; // SQL query
+        
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, restaurantId); // Set restaurant ID parameter
+            ResultSet rs = pstmt.executeQuery(); // Execute query
+            
+            while (rs.next()) {
+                /**
+                 * CREATE CUSTOMER OBJECT:
+                 * Create Customer object for review author
+                 */
+                Customer customer = new Customer(
+                    rs.getString("user_name"), // Customer name
+                    rs.getString("user_email"), // Customer email
+                    "" // Password hash (not needed for display)
+                );
+                
+                /**
+                 * CREATE REVIEW OBJECT:
+                 * Create Review from database row
+                 */
+                Review review = new Review(
+                    rs.getInt("id"), // Review ID
+                    rs.getInt("restaurant_id"), // Restaurant ID
+                    rs.getInt("rating"), // Rating
+                    rs.getString("comment"), // Comment
+                    customer, // Author (Customer)
+                    rs.getString("review_date") // Review date
+                );
+                reviews.add(review); // Add to list
+            }
+            rs.close(); // Close result set
+        } catch (SQLException e) {
+            /**
+             * ERROR HANDLING:
+             * Log error if query fails
+             */
+            System.err.println("Error fetching reviews for restaurant:");
+            e.printStackTrace();
+        }
+        
+        return reviews; // Return list of reviews
+    }
+    
+    /**
+     * getReviewsByCustomer() - Gets all reviews by a customer
+     * 
+     * PURPOSE:
+     * Retrieves all reviews written by a specific customer.
+     * Used to display customer's review history.
+     * 
+     * UML CLASSES USED:
+     * - Review: Creates Review objects from database rows
+     * - Customer: Creates Customer objects for review authors
+     * 
+     * DATABASE OPERATIONS:
+     * - SELECT * FROM reviews WHERE customer_id = ? ORDER BY review_date DESC
+     * - Joins with users table to get customer information
+     * 
+     * @param customerId The ID of the customer
+     * @return List of Review objects written by that customer
+     */
+    public List<Review> getReviewsByCustomer(int customerId) {
+        List<Review> reviews = new ArrayList<>(); // Create list for results
+        Connection conn = dbConnection.getConnection(); // Get database connection
+        if (conn == null) {
+            System.err.println("Database connection is not available");
+            return reviews; // Return empty list
+        }
+        
+        /**
+         * SQL QUERY:
+         * Join reviews with users table to get customer information
+         * Order by review_date DESC to show newest reviews first
+         */
+        String sql = """
+            SELECT r.id, r.restaurant_id, r.customer_id, r.rating, r.comment, r.review_date,
+                   u.id as user_id, u.name as user_name, u.email as user_email
+            FROM reviews r
+            JOIN users u ON r.customer_id = u.id
+            WHERE r.customer_id = ?
+            ORDER BY r.review_date DESC
+        """; // SQL query
+        
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, customerId); // Set customer ID parameter
+            ResultSet rs = pstmt.executeQuery(); // Execute query
+            
+            while (rs.next()) {
+                /**
+                 * CREATE CUSTOMER OBJECT:
+                 * Create Customer object for review author
+                 */
+                Customer customer = new Customer(
+                    rs.getString("user_name"), // Customer name
+                    rs.getString("user_email"), // Customer email
+                    "" // Password hash (not needed for display)
+                );
+                
+                /**
+                 * CREATE REVIEW OBJECT:
+                 * Create Review from database row
+                 */
+                Review review = new Review(
+                    rs.getInt("id"), // Review ID
+                    rs.getInt("restaurant_id"), // Restaurant ID
+                    rs.getInt("rating"), // Rating
+                    rs.getString("comment"), // Comment
+                    customer, // Author (Customer)
+                    rs.getString("review_date") // Review date
+                );
+                reviews.add(review); // Add to list
+            }
+            rs.close(); // Close result set
+        } catch (SQLException e) {
+            /**
+             * ERROR HANDLING:
+             * Log error if query fails
+             */
+            System.err.println("Error fetching reviews for customer:");
+            e.printStackTrace();
+        }
+        
+        return reviews; // Return list of reviews
+    }
+    
+    /**
+     * getRestaurantIdByOrderId() - Gets restaurant ID from order ID
+     * 
+     * PURPOSE:
+     * Retrieves restaurant ID for an order by querying order items.
+     * Used to determine which restaurant an order belongs to.
+     * 
+     * DATABASE OPERATIONS:
+     * - SELECT DISTINCT mi.restaurant_id FROM order_items oi
+     *   JOIN menu_items mi ON oi.menu_item_name = mi.name
+     *   WHERE oi.order_id = ?
+     * - Gets restaurant ID from menu items in the order
+     * 
+     * @param orderId The ID of the order
+     * @return Restaurant ID if found, -1 if not found
+     */
+    public int getRestaurantIdByOrderId(int orderId) {
+        Connection conn = dbConnection.getConnection(); // Get database connection
+        if (conn == null) {
+            System.err.println("Database connection is not available");
+            return -1; // Connection failed
+        }
+        
+        /**
+         * SQL QUERY:
+         * Join order_items with menu_items to get restaurant_id
+         * Use DISTINCT in case order has multiple items from same restaurant
+         */
+        String sql = """
+            SELECT DISTINCT mi.restaurant_id
+            FROM order_items oi
+            JOIN menu_items mi ON oi.menu_item_name = mi.name
+            WHERE oi.order_id = ?
+            LIMIT 1
+        """; // SQL query
+        
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, orderId); // Set order ID parameter
+            ResultSet rs = pstmt.executeQuery(); // Execute query
+            
+            if (rs.next()) {
+                int restaurantId = rs.getInt("restaurant_id"); // Get restaurant ID
+                rs.close(); // Close result set
+                return restaurantId; // Return restaurant ID
+            }
+            rs.close(); // Close result set
+        } catch (SQLException e) {
+            /**
+             * ERROR HANDLING:
+             * Log error if query fails
+             */
+            System.err.println("Error getting restaurant ID from order:");
+            e.printStackTrace();
+        }
+        
+        return -1; // Restaurant not found
     }
 }

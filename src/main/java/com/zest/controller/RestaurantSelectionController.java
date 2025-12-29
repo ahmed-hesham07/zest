@@ -33,6 +33,7 @@ import javafx.scene.layout.FlowPane; // Container that arranges restaurants in a
 import javafx.scene.layout.VBox; // Vertical container for restaurant cards
 import javafx.scene.control.Label; // Text label for restaurant name
 import javafx.scene.control.Button; // Button for selecting restaurant
+import javafx.scene.layout.HBox; // Horizontal container for buttons
 import java.io.IOException; // Exception handling
 import java.util.List; // List interface for restaurant collection
 
@@ -199,10 +200,25 @@ public class RestaurantSelectionController {
         selectBtn.setOnAction(e -> handleSelectRestaurant(restaurant)); // Set click handler
         
         /**
-         * ADD ELEMENTS TO CARD:
-         * Add image, name, and button to card container
+         * CREATE REVIEWS BUTTON:
+         * Button that allows user to view reviews for this restaurant
          */
-        card.getChildren().addAll(imageView, nameLabel, selectBtn); // Add to card
+        Button reviewsBtn = new Button("Reviews"); // Create button
+        reviewsBtn.setStyle("-fx-background-color: #6c757d; -fx-text-fill: white; -fx-font-weight: bold;"); // Gray styling
+        reviewsBtn.setOnAction(e -> handleViewReviews(restaurant)); // Set click handler
+        
+        /**
+         * CREATE BUTTON CONTAINER:
+         * HBox to hold both buttons side by side
+         */
+        HBox buttonBox = new HBox(10); // Create HBox with 10px spacing
+        buttonBox.getChildren().addAll(selectBtn, reviewsBtn); // Add buttons to container
+        
+        /**
+         * ADD ELEMENTS TO CARD:
+         * Add image, name, and buttons to card container
+         */
+        card.getChildren().addAll(imageView, nameLabel, buttonBox); // Add to card
         return card; // Return completed card
     }
     
@@ -278,6 +294,48 @@ public class RestaurantSelectionController {
      */
     public static void clearSelection() {
         selectedRestaurantId = null; // Clear selection
+    }
+    
+    /**
+     * handleViewReviews() - Event handler for reviews button
+     * 
+     * PURPOSE:
+     * Handles when user clicks "Reviews" on a restaurant.
+     * Sets restaurant ID and navigates to reviews screen.
+     * 
+     * UML CLASSES USED:
+     * - Restaurant: Gets restaurant id to display reviews
+     * 
+     * FLOW:
+     * 1. User clicks "Reviews" button
+     * 2. Set restaurant ID in ReviewController
+     * 3. Navigate to reviews screen
+     */
+    private void handleViewReviews(Restaurant restaurant) {
+        /**
+         * STEP 1: SET RESTAURANT ID IN REVIEW CONTROLLER
+         * Set restaurant ID so ReviewController can load reviews
+         */
+        com.zest.controller.ReviewController.setCurrentRestaurantId(restaurant.getId()); // Set restaurant ID
+        
+        try {
+            /**
+             * STEP 2: NAVIGATE TO REVIEWS SCREEN
+             * Redirect user to reviews screen where they can view and submit reviews
+             */
+            Main.switchScene("/fxml/Reviews.fxml"); // Navigate to reviews screen
+        } catch (IOException e) {
+            /**
+             * ERROR HANDLING:
+             * If navigation fails, log error and show error message
+             */
+            e.printStackTrace();
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText(null);
+            alert.setContentText("Could not load reviews screen.");
+            alert.showAndWait();
+        }
     }
     
     /**

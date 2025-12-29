@@ -26,6 +26,7 @@ import com.zest.dao.DataService; // Data access layer for fetching orders
 import com.zest.model.Order; // UML Class: Order model with status, totalAmount
 import javafx.fxml.FXML; // JavaFX annotation for FXML injection
 import javafx.geometry.Insets; // Spacing for UI elements
+import javafx.scene.control.Button; // Button for actions
 import javafx.scene.control.Label; // Text labels
 import javafx.scene.control.ListView; // List view for displaying orders
 import javafx.scene.control.Separator; // Visual separator between sections
@@ -344,7 +345,7 @@ public class HistoryController {
         /**
          * ADD INDICATOR BASED ON ORDER TYPE:
          * Current orders: "Order in progress" indicator
-         * History orders: "Order completed" indicator
+         * History orders: "Order completed" indicator with review button
          */
         if (isCurrentOrder) {
             Label indicatorLabel = new Label("⏳ Order in progress"); // Current order indicator
@@ -353,7 +354,16 @@ public class HistoryController {
         } else {
             Label indicatorLabel = new Label("✓ Order completed"); // History order indicator
             indicatorLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #28a745; -fx-font-style: italic;"); // Green, italic
-            card.getChildren().addAll(headerBox, priceLabel, indicatorLabel); // Add to card
+            
+            /**
+             * CREATE REVIEW BUTTON FOR DELIVERED ORDERS:
+             * Allow customers to leave reviews after order is delivered
+             */
+            Button reviewButton = new Button("Leave Review"); // Create review button
+            reviewButton.setStyle("-fx-background-color: #ff9f1c; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 11px;"); // Orange styling
+            reviewButton.setOnAction(e -> handleLeaveReview(order)); // Set click handler
+            
+            card.getChildren().addAll(headerBox, priceLabel, indicatorLabel, reviewButton); // Add to card
         }
         
         return card; // Return completed card
@@ -451,5 +461,68 @@ public class HistoryController {
      */
     public void refresh() {
         loadOrderHistory(); // Reload orders from database
+    }
+    
+    /**
+     * handleLeaveReview() - Event handler for leave review button
+     * 
+     * PURPOSE:
+     * Handles when user clicks "Leave Review" on a delivered order.
+     * Gets restaurant ID from order and navigates to reviews screen.
+     * 
+     * UML CLASSES USED:
+     * - Order: Gets order ID to find restaurant
+     * 
+     * FLOW:
+     * 1. User clicks "Leave Review" button
+     * 2. Get restaurant ID from order (via order items)
+     * 3. Set restaurant ID in ReviewController
+     * 4. Navigate to reviews screen
+     */
+    private void handleLeaveReview(Order order) {
+        /**
+         * STEP 1: GET RESTAURANT ID FROM ORDER
+         * Need to get restaurant ID from order items
+         * Query database to find restaurant ID from order items
+         */
+        int restaurantId = dataService.getRestaurantIdByOrderId(order.getId());
+        
+        if (restaurantId == -1) {
+            /**
+             * ERROR: Could not find restaurant
+             * Show error message
+             */
+            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText(null);
+            alert.setContentText("Could not find restaurant for this order.");
+            alert.showAndWait();
+            return; // Exit method early
+        }
+        
+        /**
+         * STEP 2: SET RESTAURANT ID IN REVIEW CONTROLLER
+         * Set restaurant ID so ReviewController can load reviews
+         */
+        com.zest.controller.ReviewController.setCurrentRestaurantId(restaurantId); // Set restaurant ID
+        
+        try {
+            /**
+             * STEP 3: NAVIGATE TO REVIEWS SCREEN
+             * Redirect user to reviews screen where they can submit review
+             */
+            Main.switchScene("/fxml/Reviews.fxml"); // Navigate to reviews screen
+        } catch (IOException e) {
+            /**
+             * ERROR HANDLING:
+             * If navigation fails, log error and show error message
+             */
+            e.printStackTrace();
+            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText(null);
+            alert.setContentText("Could not load reviews screen.");
+            alert.showAndWait();
+        }
     }
 }

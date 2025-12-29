@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane prefHeight="800.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.zest.controller.ReviewController">
+   <top>
+      <VBox spacing="10.0" BorderPane.alignment="CENTER">
+         <children>
+            <Label text="Customer Reviews" style="-fx-font-size: 28px; -fx-font-weight: bold;" />
+            <Label fx:id="restaurantNameLabel" text="Restaurant Name" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #ff9f1c;" />
+            <Label fx:id="averageRatingLabel" text="⭐ 0.0 / 5.0" style="-fx-font-size: 16px; -fx-text-fill: #333;" />
+         </children>
+         <padding>
+            <Insets bottom="10.0" left="20.0" right="20.0" top="20.0" />
+         </padding>
+      </VBox>
+   </top>
+   <center>
+      <VBox spacing="15.0" BorderPane.alignment="CENTER">
+         <children>
+            <Label fx:id="emptyLabel" text="" />
+            <ScrollPane fitToWidth="true" hbarPolicy="NEVER" prefHeight="450.0" prefWidth="900.0" vbarPolicy="AS_NEEDED">
+               <content>
+                  <ListView fx:id="reviewsListView" prefHeight="450.0" prefWidth="900.0" />
+               </content>
+            </ScrollPane>
+            <Separator />
+            <VBox spacing="10.0">
+               <children>
+                  <Label text="Write a Review" style="-fx-font-size: 18px; -fx-font-weight: bold;" />
+                  <Label text="Rating:" style="-fx-font-size: 14px; -fx-font-weight: bold;" />
+                  <HBox spacing="15.0">
+                     <children>
+                        <RadioButton fx:id="rating1Radio" text="1 ⭐">
+                           <toggleGroup>
+                              <ToggleGroup fx:id="ratingToggleGroup" />
+                           </toggleGroup>
+                        </RadioButton>
+                        <RadioButton fx:id="rating2Radio" text="2 ⭐⭐" toggleGroup="$ratingToggleGroup" />
+                        <RadioButton fx:id="rating3Radio" text="3 ⭐⭐⭐" toggleGroup="$ratingToggleGroup" />
+                        <RadioButton fx:id="rating4Radio" text="4 ⭐⭐⭐⭐" toggleGroup="$ratingToggleGroup" />
+                        <RadioButton fx:id="rating5Radio" text="5 ⭐⭐⭐⭐⭐" toggleGroup="$ratingToggleGroup" />
+                     </children>
+                  </HBox>
+                  <Label text="Comment:" style="-fx-font-size: 14px; -fx-font-weight: bold;" />
+                  <TextArea fx:id="commentTextArea" prefHeight="100.0" prefWidth="850.0" promptText="Share your experience..." wrapText="true" />
+                  <Button fx:id="submitButton" mnemonicParsing="false" onAction="#handleSubmitReview" style="-fx-background-color: #ff9f1c; -fx-text-fill: white; -fx-font-weight: bold; -fx-pref-width: 150;" text="Submit Review" />
+               </children>
+               <padding>
+                  <Insets bottom="10.0" left="20.0" right="20.0" top="10.0" />
+               </padding>
+            </VBox>
+         </children>
+         <padding>
+            <Insets bottom="20.0" left="30.0" right="30.0" top="20.0" />
+         </padding>
+      </VBox>
+   </center>
+   <bottom>
+      <HBox alignment="CENTER" spacing="20.0" BorderPane.alignment="CENTER">
+         <children>
+            <Button mnemonicParsing="false" onAction="#handleBackToHome" style="-fx-background-color: #6c757d; -fx-text-fill: white; -fx-font-weight: bold; -fx-pref-width: 150;" text="← Back to Menu" />
+         </children>
+         <padding>
+            <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+         </padding>
+      </HBox>
+   </bottom>
+</BorderPane>
+

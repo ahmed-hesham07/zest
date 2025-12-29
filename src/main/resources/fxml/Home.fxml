@@ -14,6 +14,7 @@
          <children>
             <Button mnemonicParsing="false" onAction="#handleBackToRestaurants" style="-fx-background-color: #6c757d; -fx-text-fill: white;" text="← Back" />
             <TextField fx:id="searchField" prefHeight="26.0" prefWidth="200.0" promptText="Search for food..." />
+            <Button fx:id="historyBtn" mnemonicParsing="false" onAction="#handleViewHistory" prefHeight="26.0" prefWidth="120.0" style="-fx-background-color: #17a2b8; -fx-text-fill: white; -fx-font-weight: bold;" text="📚 Orders" />
             <Button fx:id="cartBtn" mnemonicParsing="false" onAction="#handleViewCart" prefHeight="26.0" prefWidth="150.0" style="-fx-background-color: #ff9f1c; -fx-text-fill: white; -fx-font-weight: bold;" text="🛒 View Cart" />
          </children>
          <padding>

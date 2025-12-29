@@ -1,12 +1,8 @@
 package com.zest.controller;
 
 import com.zest.Main;
-import com.zest.dao.DataService;
 import com.zest.logic.CartManager;
-import com.zest.logic.CashPayment;
-import com.zest.logic.PaymentStrategy;
 import com.zest.model.MenuItem;
-import com.zest.model.Order;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Alert;
@@ -18,12 +14,6 @@ import java.io.IOException;
 public class CartController {
     @FXML private VBox cartItemsContainer; // Hamdy's VBox inside the ScrollPane
     @FXML private Label totalPriceLabel; // Hamdy's price label
-    
-    private DataService dataService;
-
-    public CartController() {
-        this.dataService = new DataService();
-    }
 
     @FXML
     public void initialize() {
@@ -44,58 +34,16 @@ public class CartController {
             return;
         }
         
-        // Get current user ID
-        String userEmail = HistoryController.getCurrentUserEmail();
-        if (userEmail == null || userEmail.isEmpty()) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Authentication Error");
-            alert.setHeaderText(null);
-            alert.setContentText("Please log in again.");
-            alert.showAndWait();
-            try {
-                Main.switchScene("/fxml/Login.fxml");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return;
-        }
-        
-        int userId = dataService.getUserIdByEmail(userEmail);
-        if (userId == -1) {
+        // Navigate to checkout screen
+        try {
+            Main.switchScene("/fxml/Checkout.fxml");
+        } catch (IOException e) {
+            e.printStackTrace();
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Error");
             alert.setHeaderText(null);
-            alert.setContentText("User not found.");
+            alert.setContentText("Could not load checkout screen.");
             alert.showAndWait();
-            return;
-        }
-        
-        // Create order
-        double totalPrice = cart.getTotalPrice();
-        Order order = new Order(userId, totalPrice, "PENDING");
-        
-        // Process payment using Strategy Pattern
-        PaymentStrategy payment = new CashPayment(); // Default to cash payment
-        payment.pay(totalPrice);
-        
-        // Save order to database
-        dataService.saveOrder(order);
-        
-        // Clear cart
-        cart.getItems().clear();
-        
-        // Show success message
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Order Placed");
-        alert.setHeaderText(null);
-        alert.setContentText("Your order has been placed successfully!");
-        alert.showAndWait();
-        
-        // Return to home
-        try {
-            Main.switchScene("/fxml/Home.fxml");
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
     
@@ -117,11 +65,13 @@ public class CartController {
         // 1. Wipe the current UI clean
         cartItemsContainer.getChildren().clear();
         
+        CartManager cart = CartManager.getInstance();
+        
         try {
-            // 2. Loop through every item in the user's cart
-            for (MenuItem item : CartManager.getInstance().getItems()) {
+            // 2. Loop through unique items with their quantities
+            for (MenuItem item : cart.getItemQuantities().keySet()) {
                 
-                // 3. Load Hamdy's thin horizontal card template
+                // 3. Load cart item card template
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/CartItemCard.fxml"));
                 HBox card = (HBox) loader.load();
 
@@ -138,6 +88,6 @@ public class CartController {
         }
         
         // 6. Update the total price label
-        totalPriceLabel.setText(String.format("%.2f EGP", CartManager.getInstance().getTotalPrice()));
+        totalPriceLabel.setText(String.format("%.2f EGP", cart.getTotalPrice()));
     }
 }

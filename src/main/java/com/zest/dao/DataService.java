@@ -1,6 +1,7 @@
 package com.zest.dao;
 
 import com.zest.model.Order;
+import com.zest.model.Restaurant;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.util.List;
@@ -45,6 +46,7 @@ public class DataService {
                 
                 MenuItem item = new MenuItem(
                     rs.getInt("id"),
+                    rs.getInt("restaurant_id"),
                     rs.getString("name"),
                     rs.getDouble("price"),
                     rs.getString("description"),
@@ -206,6 +208,89 @@ public class DataService {
         }
         
         return orders;
+    }
+    
+    /**
+     * Get all restaurants from the database
+     * @return List of all restaurants
+     */
+    public List<Restaurant> getAllRestaurants() {
+        List<Restaurant> restaurants = new ArrayList<>();
+        Connection conn = dbConnection.getConnection();
+        if (conn == null) {
+            System.err.println("Database connection is not available");
+            return restaurants;
+        }
+        
+        String sql = "SELECT * FROM restaurants ORDER BY name";
+        
+        try (PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+            
+            while (rs.next()) {
+                String imageUrl = rs.getString("image_url");
+                if (imageUrl == null) {
+                    imageUrl = "default_rest.png";
+                }
+                
+                Restaurant restaurant = new Restaurant(
+                    rs.getInt("id"),
+                    rs.getString("name"),
+                    imageUrl
+                );
+                restaurants.add(restaurant);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching restaurants:");
+            e.printStackTrace();
+        }
+        
+        return restaurants;
+    }
+    
+    /**
+     * Get menu items for a specific restaurant
+     * @param restaurantId The ID of the restaurant
+     * @return List of menu items for that restaurant
+     */
+    public List<MenuItem> getMenuItemsByRestaurant(int restaurantId) {
+        List<MenuItem> items = new ArrayList<>();
+        Connection conn = dbConnection.getConnection();
+        
+        if (conn == null) {
+            System.err.println("Database connection is not available");
+            return items;
+        }
+
+        String sql = "SELECT * FROM menu_items WHERE restaurant_id = ? ORDER BY name";
+        
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, restaurantId);
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                String imageUrl = rs.getString("image_url");
+                if (imageUrl == null) {
+                    imageUrl = "default_item.png";
+                }
+                
+                MenuItem item = new MenuItem(
+                    rs.getInt("id"),
+                    rs.getInt("restaurant_id"),
+                    rs.getString("name"),
+                    rs.getDouble("price"),
+                    rs.getString("description"),
+                    imageUrl
+                );
+                items.add(item);
+            }
+            rs.close();
+        } catch (SQLException e) {
+            System.err.println("SQL Error in getMenuItemsByRestaurant:");
+            e.printStackTrace();
+        }
+        
+        return items;
     }
     
     /**

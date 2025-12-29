@@ -6,9 +6,21 @@
 * **Ziad Osama** (User Management & Admin Logic) 
 * **Hamdy Ashraf** (Customer Experience & Menu Logic)
 
-> 📋 **See [CHANGELOG.md](CHANGELOG.md) for detailed documentation of all changes and improvements made to this project.** 
+> 📋 **See [CHANGELOG.md](CHANGELOG.md) for detailed documentation of all changes and improvements made to this project.**
+> 📸 **See [IMAGE_GUIDE.md](IMAGE_GUIDE.md) for image requirements and specifications.**
 
+---
 
+## 🚀 Quick Start
+
+**Want to run it right now?**
+
+1. Open `Main.java` in IntelliJ IDEA
+2. Click the green ▶️ Run button (or press `Shift + F10`)
+3. Login with: `ziad@gmail.com` / `123`
+4. Done! 🎉
+
+> 💡 **No database setup needed!** The SQLite database auto-creates on first run.
 
 ---
 
@@ -35,7 +47,7 @@ Zest is a JavaFX desktop application that simulates a food delivery platform. It
 
 Ensure you have the following installed before writing code:
 
-* **Java JDK 17+** (Required for JavaFX).
+* **Java JDK 17+** (Required for JavaFX). The project is configured for Java 17. If Maven uses a different JDK version, ensure it's Java 17 or later.
 * **IntelliJ IDEA** (Community or Ultimate).
 * **SceneBuilder** (For editing FXML files).
 
@@ -115,12 +127,68 @@ When asked during the discussion, point to these specific files:
 
 ## ⚡ How to Run
 
-1. **Everyone:** Open `Main.java` in IntelliJ.
-2. Click the green **Run** button.
-3. The database will be automatically created on first run with seed data.
-4. **Login Credentials (Dummy Data):**
-* *Email:* `ziad@gmail.com`
-* *Password:* `123`
+### Method 1: Using IntelliJ IDEA (Recommended)
+
+1. **Open the Project:**
+   - Open IntelliJ IDEA
+   - File → Open → Select the `zest` project folder
+   - Wait for IntelliJ to index the project and download Maven dependencies
+
+2. **Load Maven Dependencies:**
+   - Right-click on `pom.xml` → Maven → Reload Project
+   - Wait for dependencies to download (you'll see progress in the bottom status bar)
+
+3. **Run the Application:**
+   - Navigate to `src/main/java/com/zest/Main.java`
+   - Right-click on `Main.java` → Run 'Main.main()'
+   - OR click the green ▶️ Run button next to the `main()` method
+   - OR press `Shift + F10`
+
+4. **First Run:**
+   - The application will automatically create `zest_db.sqlite` in your project root
+   - Database tables and seed data will be initialized automatically
+   - You'll see console messages: "Initializing database schema and seed data..."
+
+5. **Login:**
+   - Use the test credentials:
+     - **Email:** `ziad@gmail.com`
+     - **Password:** `123`
+   - Or register a new account
+
+### Method 2: Using Maven Command Line
+
+1. **Open Terminal/Command Prompt** in the project root directory
+
+2. **Compile the project:**
+   ```bash
+   mvn clean compile
+   ```
+
+3. **Run the application:**
+   ```bash
+   mvn javafx:run
+   ```
+
+> ⚠️ **Note**: The project is configured for **Java 17**. Make sure Maven is using Java 17 or later. Check with `mvn -version`. If you have Java 21 installed but Maven uses Java 17, that's fine - the project will compile and run correctly.
+
+### 📝 Test Credentials (Seed Data)
+
+The following test accounts are automatically created:
+
+| Email | Password | Role |
+|-------|----------|------|
+| `ziad@gmail.com` | `123` | CUSTOMER |
+| `hamdy@gmail.com` | `123` | CUSTOMER |
+| `ahmed@zest.com` | `123` | MERCHANT |
+
+### ✅ What to Expect
+
+1. **Login Screen** appears first
+2. **Database auto-creates** on first run (check console for messages)
+3. **Home Screen** shows menu items after login
+4. **Cart** allows adding/removing items
+5. **Checkout** creates orders in database
+6. **History** shows past orders
 
 ---
 

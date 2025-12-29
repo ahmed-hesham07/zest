@@ -5,7 +5,7 @@ public abstract class ToppingDecorator extends MenuItem {
 
     public ToppingDecorator(MenuItem item) {
         // Pass the item data up to the MenuItem parent
-        super(0, item.getName(), item.getPrice(), "", item.getImageUrl());
+        super(0, item.getRestaurantId(), item.getName(), item.getPrice(), "", item.getImageUrl());
         this.protectedItem = item;
     }
 }

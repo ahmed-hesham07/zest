@@ -16,4 +16,5 @@ module zest {
     exports com.zest.controller;
     exports com.zest.dao;
     exports com.zest.model;
+    exports com.zest.logic;
 }

@@ -39,12 +39,12 @@ public class LoginController {
             // Store current user email for session management
             HistoryController.setCurrentUserEmail(email);
             try {
-                System.out.println("Login Successful! Opening Home...");
-                // swap the screen
-                Main.switchScene("/fxml/Home.fxml");
+                System.out.println("Login Successful! Opening Restaurant Selection...");
+                // Navigate to restaurant selection first
+                Main.switchScene("/fxml/RestaurantSelection.fxml");
             } catch (IOException e) {
                 e.printStackTrace();
-                errorLabel.setText("CRITICAL: Could not load Home.fxml");
+                errorLabel.setText("CRITICAL: Could not load RestaurantSelection.fxml");
             }
         } else {
             // for wrong credentials

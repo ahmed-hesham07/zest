@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane prefHeight="600.0" prefWidth="700.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.zest.controller.CheckoutController">
+   <top>
+      <HBox alignment="CENTER" prefHeight="60.0" prefWidth="700.0" BorderPane.alignment="CENTER">
+         <children>
+            <Label text="Checkout" style="-fx-font-size: 28px; -fx-font-weight: bold;" />
+         </children>
+         <padding>
+            <Insets bottom="10.0" left="20.0" right="20.0" top="10.0" />
+         </padding>
+      </HBox>
+   </top>
+   <center>
+      <ScrollPane fitToWidth="true" hbarPolicy="NEVER" prefHeight="480.0" prefWidth="700.0" BorderPane.alignment="CENTER">
+         <content>
+            <VBox spacing="20.0" style="-fx-background-color: #f8f9fa;">
+               <padding>
+                  <Insets bottom="20.0" left="30.0" right="30.0" top="20.0" />
+               </padding>
+               <children>
+                  <!-- Order Summary Section -->
+                  <VBox spacing="10.0">
+                     <Label text="Order Summary" style="-fx-font-size: 20px; -fx-font-weight: bold;" />
+                     <VBox fx:id="orderItemsContainer" spacing="8.0" style="-fx-background-color: white; -fx-padding: 15;">
+                        <padding>
+                           <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                        </padding>
+                     </VBox>
+                  </VBox>
+                  
+                  <Separator />
+                  
+                  <!-- Delivery Address Section -->
+                  <VBox spacing="15.0">
+                     <Label text="Delivery Address" style="-fx-font-size: 20px; -fx-font-weight: bold;" />
+                     <VBox spacing="10.0" style="-fx-background-color: white; -fx-padding: 15;">
+                        <VBox spacing="8.0">
+                           <Label text="Address:" style="-fx-font-size: 14px;" />
+                           <TextField fx:id="addressField" promptText="Enter your street address" style="-fx-font-size: 14px;" />
+                        </VBox>
+                        <HBox spacing="10.0">
+                           <VBox spacing="8.0" HBox.hgrow="ALWAYS">
+                              <Label text="City:" style="-fx-font-size: 14px;" />
+                              <TextField fx:id="cityField" promptText="Enter city" style="-fx-font-size: 14px;" />
+                           </VBox>
+                           <VBox spacing="8.0" HBox.hgrow="ALWAYS">
+                              <Label text="Phone:" style="-fx-font-size: 14px;" />
+                              <TextField fx:id="phoneField" promptText="Enter phone number" style="-fx-font-size: 14px;" />
+                           </VBox>
+                        </HBox>
+                     </VBox>
+                  </VBox>
+                  
+                  <Separator />
+                  
+                  <!-- Payment Method Section -->
+                  <VBox spacing="15.0">
+                     <Label text="Payment Method" style="-fx-font-size: 20px; -fx-font-weight: bold;" />
+                     <VBox spacing="10.0" style="-fx-background-color: white; -fx-padding: 15;">
+                        <RadioButton fx:id="cashRadio" selected="true" text="💵 Cash on Delivery" style="-fx-font-size: 16px;" />
+                        <RadioButton fx:id="paypalRadio" text="💳 PayPal" style="-fx-font-size: 16px;" />
+                     </VBox>
+                  </VBox>
+                  
+                  <Separator />
+                  
+                  <!-- Total Section -->
+                  <VBox spacing="10.0" style="-fx-background-color: white; -fx-padding: 15;">
+                     <HBox spacing="10.0">
+                        <Label text="Subtotal:" style="-fx-font-size: 16px;" />
+                        <Label fx:id="subtotalLabel" style="-fx-font-size: 16px; -fx-font-weight: bold;" />
+                     </HBox>
+                     <HBox spacing="10.0">
+                        <Label text="VAT (14%):" style="-fx-font-size: 16px;" />
+                        <Label fx:id="vatLabel" style="-fx-font-size: 16px; -fx-font-weight: bold;" />
+                     </HBox>
+                     <HBox spacing="10.0">
+                        <Label text="Delivery:" style="-fx-font-size: 16px;" />
+                        <Label fx:id="deliveryLabel" style="-fx-font-size: 16px; -fx-font-weight: bold;" />
+                     </HBox>
+                     <Separator />
+                     <HBox spacing="10.0">
+                        <Label text="Total:" style="-fx-font-size: 18px; -fx-font-weight: bold;" />
+                        <Label fx:id="totalLabel" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #ff9f1c;" />
+                     </HBox>
+                  </VBox>
+               </children>
+            </VBox>
+         </content>
+      </ScrollPane>
+   </center>
+   <bottom>
+      <HBox alignment="CENTER" spacing="20.0" BorderPane.alignment="CENTER">
+         <children>
+            <Button mnemonicParsing="false" onAction="#handleBackToCart" style="-fx-background-color: #6c757d; -fx-text-fill: white; -fx-font-weight: bold; -fx-pref-width: 150;" text="← Back to Cart" />
+            <Button mnemonicParsing="false" onAction="#handlePlaceOrder" style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold; -fx-pref-width: 200; -fx-font-size: 16px;" text="✓ Place Order" />
+         </children>
+         <padding>
+            <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+         </padding>
+      </HBox>
+   </bottom>
+</BorderPane>
+

@@ -23,7 +23,7 @@
          <children>
             <Label text="Order Summary" />
             <Label fx:id="totalPriceLabel" text="price" />
-            <Button fx:id="checkoutBtn" mnemonicParsing="false" style="-fx-background-color: #ff9f1c; -fx-text-fill: white; -fx-font-weight: bold;" text="Checkout" />
+            <Button fx:id="checkoutBtn" mnemonicParsing="false" onAction="#handleCheckout" style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold;" text="Checkout" />
             <Button mnemonicParsing="false" onAction="#handleBackToHome" prefHeight="26.0" prefWidth="101.0" style="-fx-background-color: #ff9f1c; -fx-text-fill: black; -fx-font-weight: bold;" text="Home" />
          </children>
          <BorderPane.margin>

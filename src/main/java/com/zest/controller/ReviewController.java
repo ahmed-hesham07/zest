@@ -22,7 +22,7 @@ package com.zest.controller;
  * - Validates rating and comment before submission
  * - Saves review to database
  * 
- * TEAM MEMBER: Ziad Osama (The Gatekeeper)
+ * TEAM MEMBER:Ahmed Hesham
  * RESPONSIBILITY: Review System & Customer Feedback
  */
 
@@ -555,23 +555,24 @@ public class ReviewController {
      * handleBackToHome() - Event handler for back button
      * 
      * PURPOSE:
-     * Returns user to menu/home screen.
+     * Returns user to restaurant selection screen.
+     * This avoids the conflict where Home screen requires a restaurant to be selected.
      * 
      * FLOW:
      * 1. User clicks back button
-     * 2. Navigate to Home.fxml screen
+     * 2. Navigate to RestaurantSelection.fxml screen
      */
     @FXML
     private void handleBackToHome() {
         try {
-            Main.switchScene("/fxml/Home.fxml"); // Navigate to menu screen
+            Main.switchScene("/fxml/RestaurantSelection.fxml"); // Navigate to restaurant selection screen
         } catch (IOException e) {
             /**
              * ERROR HANDLING:
              * If navigation fails, log error
              */
             e.printStackTrace();
-            System.err.println("Could not load Home.fxml");
+            System.err.println("Could not load RestaurantSelection.fxml");
         }
     }
 }

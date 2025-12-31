@@ -431,6 +431,7 @@ public class DBConnection {
          * TABLE: USERS
          * Stores user accounts (Customers and Merchants)
          * Updated with password_hash and business_license for UML spec
+         * Role-based access: CUSTOMER or MERCHANT
          */
         stmt.execute("""
             CREATE TABLE IF NOT EXISTS users (
@@ -440,7 +441,6 @@ public class DBConnection {
                 password TEXT NOT NULL,
                 password_hash TEXT,
                 role TEXT DEFAULT 'CUSTOMER' CHECK(role IN ('CUSTOMER', 'MERCHANT')),
-                loyalty_points INTEGER DEFAULT 0,
                 business_license TEXT
             )
         """);
@@ -559,17 +559,23 @@ public class DBConnection {
          * INSERT USERS:
          * Create sample users (1 Merchant, 2 Customers)
          * Password is '123' for everyone (for testing)
+         * IMPORTANT: Merchant must be inserted first to get ID = 1 for restaurant ownership
          */
         stmt.execute("""
             INSERT INTO users (name, email, password, role, business_license) VALUES
-            ('Ahmed Admin', 'ahmed@zest.com', '123', 'MERCHANT', 'BL-2024-001'),
-            ('Ziad Customer', 'ziad@gmail.com', '123', 'CUSTOMER', NULL),
-            ('Hamdy Customer', 'hamdy@gmail.com', '123', 'CUSTOMER', NULL)
+            ('Ahmed Admin', 'ahmed@zest.com', '123', 'MERCHANT', 'BL-2024-001')
+        """);
+        
+        stmt.execute("""
+            INSERT INTO users (name, email, password, role) VALUES
+            ('Ziad Customer', 'ziad@gmail.com', '123', 'CUSTOMER'),
+            ('Hamdy Customer', 'hamdy@gmail.com', '123', 'CUSTOMER')
         """);
         
         /**
          * INSERT RESTAURANTS:
          * Create sample restaurants linked to merchant_id = 1 (Ahmed Admin)
+         * Merchant must exist before restaurants are created
          */
         stmt.execute("""
             INSERT INTO restaurants (name, merchant_id, image_url) VALUES

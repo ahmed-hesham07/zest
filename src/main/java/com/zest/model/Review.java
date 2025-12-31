@@ -25,7 +25,7 @@ package com.zest.model;
  * - Reviews help improve restaurant quality
  * - Reviews are displayed on restaurant pages
  * 
- * TEAM MEMBER: Ziad Osama (The Gatekeeper)
+ * TEAM MEMBER: Ahmed Hesham
  * RESPONSIBILITY: Review System & Customer Feedback
  */
 

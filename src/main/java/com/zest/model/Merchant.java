@@ -135,35 +135,7 @@ public class Merchant extends User {
         }
     }
     
-    /**
-     * purgeData() - Purges/cleans up merchant data
-     * 
-     * PURPOSE:
-     * Allows merchant to purge/clean up their restaurant data.
-     * This is the UML-specified method for data management.
-     * 
-     * UML SPEC: Required method
-     * 
-     * IMPLEMENTATION NOTE:
-     * This method would typically clear restaurant data, menu items, orders, etc.
-     * Used for testing, cleanup, or account deletion.
-     * 
-     * DATA PURGE FLOW:
-     * 1. Clear restaurant menu items
-     * 2. Clear restaurant orders
-     * 3. Clear restaurant reviews
-     * 4. Other cleanup operations
-     */
-    public void purgeData() {
-        /**
-         * DATA CLEANUP:
-         * Implementation for data cleanup
-         * This would typically clear restaurant data
-         * This is a placeholder for the data purge logic
-         */
-        // Implementation for data cleanup
-        // This would typically clear restaurant data
-    }
+    
     
     /**
      * GETTER AND SETTER METHODS:

@@ -4,14 +4,17 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.RadioButton?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.zest.controller.LoginController">
    <children>
-      <VBox alignment="CENTER" layoutX="225.0" layoutY="100.0" prefHeight="400.0" prefWidth="350.0" spacing="20.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 0);">
+      <VBox alignment="CENTER" layoutX="225.0" layoutY="80.0" prefHeight="450.0" prefWidth="350.0" spacing="20.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 0);">
          <padding>
             <Insets bottom="40.0" left="40.0" right="40.0" top="40.0" />
          </padding>
@@ -23,6 +26,17 @@
             </Label>
             <TextField fx:id="emailField" promptText="Enter your email or username" />
             <PasswordField fx:id="passwordField" promptText="Enter your password" />
+            <Label text="Login as:" style="-fx-font-size: 14px;" />
+            <HBox spacing="20.0">
+               <children>
+                  <RadioButton fx:id="customerRadio" text="Customer" selected="true">
+                     <toggleGroup>
+                        <ToggleGroup fx:id="roleToggleGroup" />
+                     </toggleGroup>
+                  </RadioButton>
+                  <RadioButton fx:id="merchantRadio" text="Merchant" toggleGroup="$roleToggleGroup" />
+               </children>
+            </HBox>
             <Button fx:id="loginBtn" mnemonicParsing="false" onAction="#handleLogin" prefWidth="300.0" style="-fx-background-color: #ff9f1c; -fx-text-fill: white; -fx-font-weight: bold;" text="Login" />
             <Label fx:id="errorLabel" textFill="#ef0000" />
             <Button mnemonicParsing="false" onAction="#handleGoToRegister" text="Don't have an account? Sign up" />

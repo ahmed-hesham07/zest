@@ -244,21 +244,11 @@ public class DataService {
     }
     
     /**
-     * registerUser() - Registers a new user in the database
+     * registerUser() - Registers a new user in the database (backward compatibility)
      * 
      * PURPOSE:
-     * Creates a new user account in the database.
-     * Used by RegisterController for user registration.
-     * 
-     * REGISTRATION FLOW:
-     * 1. Check if email already exists
-     * 2. If email exists, return false (registration fails)
-     * 3. If email is new, insert new user record
-     * 4. Return true if insertion successful
-     * 
-     * VALIDATION:
-     * - Email uniqueness: Prevents duplicate accounts
-     * - All fields required: name, email, password
+     * Creates a new customer account in the database.
+     * Kept for backward compatibility.
      * 
      * @param name User's name
      * @param email User's email (must be unique)
@@ -266,6 +256,35 @@ public class DataService {
      * @return true if registration successful, false if email already exists
      */
     public boolean registerUser(String name, String email, String password) {
+        return registerUser(name, email, password, "CUSTOMER", null);
+    }
+    
+    /**
+     * registerUser() - Registers a new user in the database with role
+     * 
+     * PURPOSE:
+     * Creates a new user account in the database with specified role.
+     * Used by RegisterController for user registration.
+     * 
+     * REGISTRATION FLOW:
+     * 1. Check if email already exists
+     * 2. If email exists, return false (registration fails)
+     * 3. If email is new, insert new user record with role and business license
+     * 4. Return true if insertion successful
+     * 
+     * VALIDATION:
+     * - Email uniqueness: Prevents duplicate accounts
+     * - All fields required: name, email, password
+     * - Business license required for merchants
+     * 
+     * @param name User's name
+     * @param email User's email (must be unique)
+     * @param password User's password (plain text)
+     * @param role User's role ("CUSTOMER" or "MERCHANT")
+     * @param businessLicense Business license for merchants (can be null for customers)
+     * @return true if registration successful, false if email already exists
+     */
+    public boolean registerUser(String name, String email, String password, String role, String businessLicense) {
         Connection conn = dbConnection.getConnection(); // Get database connection
         if (conn == null) {
             System.err.println("Database connection is not available");
@@ -298,13 +317,24 @@ public class DataService {
         /**
          * STEP 2: INSERT NEW USER
          * Email is unique, proceed with registration
+         * Include role and business license if merchant
          */
-        String sql = "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, 'CUSTOMER')"; // Insert query
+        String sql;
+        if ("MERCHANT".equalsIgnoreCase(role)) {
+            sql = "INSERT INTO users (name, email, password, role, business_license) VALUES (?, ?, ?, ?, ?)"; // Insert query with business license
+        } else {
+            sql = "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)"; // Insert query without business license
+        }
         
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, name); // Set name parameter
             pstmt.setString(2, email); // Set email parameter
             pstmt.setString(3, password); // Set password parameter
+            pstmt.setString(4, role); // Set role parameter
+            
+            if ("MERCHANT".equalsIgnoreCase(role)) {
+                pstmt.setString(5, businessLicense); // Set business license for merchants
+            }
             
             int rowsAffected = pstmt.executeUpdate(); // Execute insert
             return rowsAffected > 0; // Return true if row inserted
@@ -1124,5 +1154,300 @@ public class DataService {
         }
         
         return -1; // Restaurant not found
+    }
+    
+    /**
+     * getUserRole() - Gets user role by email
+     * 
+     * PURPOSE:
+     * Retrieves the role (CUSTOMER or MERCHANT) of a user by email.
+     * Used to determine if user is a merchant and should see merchant dashboard.
+     * 
+     * @param email User's email address
+     * @return User role ("MERCHANT" or "CUSTOMER"), or null if not found
+     */
+    public String getUserRole(String email) {
+        Connection conn = dbConnection.getConnection();
+        if (conn == null) {
+            System.err.println("Database connection is not available");
+            return null;
+        }
+        
+        String sql = "SELECT role FROM users WHERE email = ?";
+        
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, email);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                String role = rs.getString("role");
+                rs.close();
+                return role;
+            }
+            rs.close();
+        } catch (SQLException e) {
+            System.err.println("Error getting user role:");
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
+    /**
+     * getRestaurantByMerchantEmail() - Gets restaurant owned by merchant
+     * 
+     * PURPOSE:
+     * Retrieves the restaurant owned by a merchant using their email.
+     * Used by MerchantDashboardController to get merchant's restaurant.
+     * 
+     * @param merchantEmail Merchant's email address
+     * @return Restaurant object if found, null otherwise
+     */
+    public Restaurant getRestaurantByMerchantEmail(String merchantEmail) {
+        Connection conn = dbConnection.getConnection();
+        if (conn == null) {
+            System.err.println("Database connection is not available");
+            return null;
+        }
+        
+        String sql = """
+            SELECT r.id, r.name, r.image_url, r.merchant_id
+            FROM restaurants r
+            JOIN users u ON r.merchant_id = u.id
+            WHERE u.email = ?
+            LIMIT 1
+        """;
+        
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, merchantEmail);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                String imageUrl = rs.getString("image_url");
+                if (imageUrl == null) {
+                    imageUrl = "default_rest.png";
+                }
+                Restaurant restaurant = new Restaurant(
+                    rs.getInt("id"),
+                    rs.getString("name"),
+                    imageUrl
+                );
+                rs.close();
+                return restaurant;
+            }
+            rs.close();
+        } catch (SQLException e) {
+            System.err.println("Error getting restaurant by merchant email:");
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
+    /**
+     * getOrdersByRestaurant() - Gets all orders for a restaurant
+     * 
+     * PURPOSE:
+     * Retrieves all orders that contain items from a specific restaurant.
+     * Used by MerchantDashboardController to display orders.
+     * 
+     * @param restaurantId The ID of the restaurant
+     * @return List of Order objects for that restaurant
+     */
+    public List<Order> getOrdersByRestaurant(int restaurantId) {
+        List<Order> orders = new ArrayList<>();
+        Connection conn = dbConnection.getConnection();
+        if (conn == null) {
+            System.err.println("Database connection is not available");
+            return orders;
+        }
+        
+        String sql = """
+            SELECT DISTINCT o.id, o.user_id, o.total_price, o.total_amount, o.status, o.order_date
+            FROM orders o
+            JOIN order_items oi ON o.id = oi.order_id
+            JOIN menu_items mi ON oi.menu_item_name = mi.name
+            WHERE mi.restaurant_id = ?
+            ORDER BY o.order_date DESC
+        """;
+        
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, restaurantId);
+            ResultSet rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                double totalAmount;
+                try {
+                    totalAmount = rs.getDouble("total_amount");
+                    if (rs.wasNull() || totalAmount == 0) {
+                        totalAmount = rs.getDouble("total_price");
+                    }
+                } catch (SQLException e) {
+                    totalAmount = rs.getDouble("total_price");
+                }
+                
+                Order order = new Order(
+                    rs.getInt("id"),
+                    rs.getInt("user_id"),
+                    totalAmount,
+                    rs.getString("status")
+                );
+                orders.add(order);
+            }
+            rs.close();
+        } catch (SQLException e) {
+            System.err.println("Error fetching orders for restaurant:");
+            e.printStackTrace();
+        }
+        
+        return orders;
+    }
+    
+    /**
+     * updateMenuItemPrice() - Updates price of a menu item
+     * 
+     * PURPOSE:
+     * Updates the current_price of a menu item in the database.
+     * Used by MerchantDashboardController when merchant updates item price.
+     * 
+     * @param menuItemId The ID of the menu item
+     * @param newPrice The new price to set
+     * @return true if update successful, false otherwise
+     */
+    public boolean updateMenuItemPrice(int menuItemId, double newPrice) {
+        Connection conn = dbConnection.getConnection();
+        if (conn == null) {
+            System.err.println("Database connection is not available");
+            return false;
+        }
+        
+        String sql = "UPDATE menu_items SET current_price = ?, price = ? WHERE id = ?";
+        
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setDouble(1, newPrice);
+            pstmt.setDouble(2, newPrice);
+            pstmt.setInt(3, menuItemId);
+            int rowsAffected = pstmt.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            System.err.println("Error updating menu item price:");
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    /**
+     * updateMenuItemAvailability() - Updates availability of a menu item
+     * 
+     * PURPOSE:
+     * Updates the is_available status of a menu item in the database.
+     * Used by MerchantDashboardController when merchant toggles item availability.
+     * 
+     * @param menuItemId The ID of the menu item
+     * @param isAvailable The new availability status
+     * @return true if update successful, false otherwise
+     */
+    public boolean updateMenuItemAvailability(int menuItemId, boolean isAvailable) {
+        Connection conn = dbConnection.getConnection();
+        if (conn == null) {
+            System.err.println("Database connection is not available");
+            return false;
+        }
+        
+        String sql = "UPDATE menu_items SET is_available = ? WHERE id = ?";
+        
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, isAvailable ? 1 : 0);
+            pstmt.setInt(2, menuItemId);
+            int rowsAffected = pstmt.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            System.err.println("Error updating menu item availability:");
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    /**
+     * addMenuItem() - Adds a new menu item to restaurant
+     * 
+     * PURPOSE:
+     * Inserts a new menu item into the database for a restaurant.
+     * Used by MerchantDashboardController when merchant adds new item.
+     * 
+     * @param restaurantId The ID of the restaurant
+     * @param name Item name
+     * @param price Item price
+     * @param description Item description
+     * @param imageUrl Item image URL
+     * @return The ID of the newly created menu item, or -1 if failed
+     */
+    public int addMenuItem(int restaurantId, String name, double price, String description, String imageUrl) {
+        Connection conn = dbConnection.getConnection();
+        if (conn == null) {
+            System.err.println("Database connection is not available");
+            return -1;
+        }
+        
+        if (imageUrl == null || imageUrl.isEmpty()) {
+            imageUrl = "default_item.png";
+        }
+        
+        String sql = "INSERT INTO menu_items (restaurant_id, name, price, current_price, is_available, description, image_url) VALUES (?, ?, ?, ?, 1, ?, ?)";
+        
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, restaurantId);
+            pstmt.setString(2, name);
+            pstmt.setDouble(3, price);
+            pstmt.setDouble(4, price);
+            pstmt.setString(5, description);
+            pstmt.setString(6, imageUrl);
+            
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                try (PreparedStatement idStmt = conn.prepareStatement("SELECT last_insert_rowid()")) {
+                    ResultSet rs = idStmt.executeQuery();
+                    if (rs.next()) {
+                        int itemId = rs.getInt(1);
+                        rs.close();
+                        return itemId;
+                    }
+                    rs.close();
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error adding menu item:");
+            e.printStackTrace();
+        }
+        
+        return -1;
+    }
+    
+    /**
+     * updateOrderStatus() - Updates order status
+     * 
+     * PURPOSE:
+     * Updates the status of an order in the database.
+     * Used by MerchantDashboardController when merchant updates order status.
+     * 
+     * @param orderId The ID of the order
+     * @param newStatus The new status (PENDING, PREPARING, READY, DELIVERED)
+     * @return true if update successful, false otherwise
+     */
+    public boolean updateOrderStatus(int orderId, String newStatus) {
+        Connection conn = dbConnection.getConnection();
+        if (conn == null) {
+            System.err.println("Database connection is not available");
+            return false;
+        }
+        
+        String sql = "UPDATE orders SET status = ? WHERE id = ?";
+        
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, newStatus);
+            pstmt.setInt(2, orderId);
+            int rowsAffected = pstmt.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            System.err.println("Error updating order status:");
+            e.printStackTrace();
+            return false;
+        }
     }
 }

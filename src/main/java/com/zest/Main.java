@@ -144,6 +144,23 @@ public class Main extends Application {
              */
             stg.getScene().setRoot(pane); // Replace root node with new FXML
         }
+        
+        /**
+         * STEP 3: ADJUST WINDOW SIZE FOR MERCHANT DASHBOARD
+         * Merchant dashboard needs wider window (1600x750)
+         * Other screens use default size (800x600)
+         */
+        if (fxml.equals("/fxml/MerchantDashboard.fxml")) {
+            stg.setWidth(1600); // Set wider width for merchant dashboard
+            stg.setHeight(750); // Set taller height for merchant dashboard
+            stg.setResizable(true); // Allow resizing for merchant dashboard
+            stg.centerOnScreen(); // Center window on screen
+        } else {
+            stg.setWidth(800); // Default width for other screens
+            stg.setHeight(600); // Default height for other screens
+            stg.setResizable(false); // Prevent resizing for other screens
+            stg.centerOnScreen(); // Center window on screen
+        }
     }
 
     /**
@@ -160,6 +177,7 @@ public class Main extends Application {
      * @param args Command-line arguments (not used)
      */
     public static void main(String[] args) {
+
         launch(args); // Launch JavaFX application
     }
 }

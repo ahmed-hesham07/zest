@@ -27,6 +27,7 @@ import com.zest.dao.DataService; // Data access layer for user registration
 import javafx.fxml.FXML; // JavaFX annotation for FXML injection
 import javafx.scene.control.Label; // Text label for error messages
 import javafx.scene.control.PasswordField; // Password input field (hides characters)
+import javafx.scene.control.RadioButton; // Radio button for role selection
 import javafx.scene.control.TextField; // Text input field for name and email
 import java.io.IOException; // Exception handling
 
@@ -68,6 +69,27 @@ public class RegisterController {
      * CONNECTS TO: Register.fxml fx:id="errorLabel"
      */
     @FXML private Label errorLabel;
+    
+    /**
+     * customerRadio - Radio button for customer role
+     * PURPOSE: User selects this to register as customer
+     * CONNECTS TO: Register.fxml fx:id="customerRadio"
+     */
+    @FXML private RadioButton customerRadio;
+    
+    /**
+     * merchantRadio - Radio button for merchant role
+     * PURPOSE: User selects this to register as merchant
+     * CONNECTS TO: Register.fxml fx:id="merchantRadio"
+     */
+    @FXML private RadioButton merchantRadio;
+    
+    /**
+     * businessLicenseField - Text field for business license
+     * PURPOSE: Merchant enters business license number
+     * CONNECTS TO: Register.fxml fx:id="businessLicenseField"
+     */
+    @FXML private TextField businessLicenseField;
 
     /**
      * dataService - Data access object for database operations
@@ -88,14 +110,14 @@ public class RegisterController {
      * 
      * PURPOSE:
      * Called automatically when Register.fxml loads.
-     * Ensures data service is initialized.
+     * Ensures data service is initialized and sets up role selection listener.
      * 
      * FLOW:
      * 1. JavaFX loads Register.fxml
      * 2. JavaFX creates RegisterController instance
      * 3. JavaFX injects @FXML fields
      * 4. JavaFX calls initialize()
-     * 5. We ensure data service is ready
+     * 5. We ensure data service is ready and set up role listener
      */
     @FXML
     public void initialize() {
@@ -103,6 +125,14 @@ public class RegisterController {
         if (dataService == null) {
             this.dataService = new DataService();
         }
+        
+        // Show/hide business license field based on role selection
+        merchantRadio.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            businessLicenseField.setVisible(newValue);
+            if (newValue) {
+                businessLicenseField.setPromptText("Business License (Required)");
+            }
+        });
     }
 
     /**
@@ -135,20 +165,27 @@ public class RegisterController {
     private void handleRegister() {
         /**
          * STEP 1: GET USER INPUT
-         * Extract name, email, and password from input fields
+         * Extract name, email, password, and role from input fields
          */
-        String name = nameField.getText(); // Get name from text field
-        String email = emailField.getText(); // Get email from text field
+        String name = nameField.getText().trim(); // Get name from text field
+        String email = emailField.getText().trim(); // Get email from text field
         String password = passwordField.getText(); // Get password from password field
+        boolean isMerchant = merchantRadio.isSelected(); // Check if merchant is selected
+        String businessLicense = businessLicenseField.getText().trim(); // Get business license
 
         /**
          * STEP 2: VALIDATE INPUT
-         * Check that all fields (name, email, password) are provided
-         * If any field is empty, show error and exit
+         * Check that all required fields are provided
+         * If merchant, business license is required
          */
         if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
             errorLabel.setText("All fields are required."); // Show error message
             return; // Exit method early - don't proceed with registration
+        }
+        
+        if (isMerchant && businessLicense.isEmpty()) {
+            errorLabel.setText("Business license is required for merchants."); // Show error message
+            return; // Exit method early
         }
 
         /**
@@ -156,14 +193,15 @@ public class RegisterController {
          * Call DataService.registerUser() to create new user account.
          * This method:
          * - Checks if email already exists
-         * - If email is new, creates user record in database
+         * - If email is new, creates user record in database with role
          * - If email exists, returns false
          * 
          * UML CLASS USAGE:
-         * - Creates Customer instance (extends User)
+         * - Creates Customer or Merchant instance (extends User)
          * - Stores passwordHash (not plain password)
          */
-        boolean success = dataService.registerUser(name, email, password);
+        String role = isMerchant ? "MERCHANT" : "CUSTOMER";
+        boolean success = dataService.registerUser(name, email, password, role, businessLicense);
         
         /**
          * STEP 4: HANDLE REGISTRATION RESULT
@@ -175,7 +213,7 @@ public class RegisterController {
              * SUCCESS: User registered successfully
              * Show success message and redirect to login screen
              */
-            System.out.println("User registered: " + email);
+            System.out.println("User registered: " + email + " as " + role);
             errorLabel.setText("Registration successful! Redirecting to login...");
             
             /**

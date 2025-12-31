@@ -27,6 +27,7 @@ import com.zest.dao.DataService; // Data access layer for authentication
 import javafx.fxml.FXML; // JavaFX annotation for FXML injection
 import javafx.scene.control.Label; // Text label for error messages
 import javafx.scene.control.PasswordField; // Password input field (hides characters)
+import javafx.scene.control.RadioButton; // Radio button for role selection
 import javafx.scene.control.TextField; // Text input field for email
 import java.io.IOException; // Exception handling
 
@@ -61,6 +62,20 @@ public class LoginController {
      * CONNECTS TO: Login.fxml fx:id="errorLabel"
      */
     @FXML private Label errorLabel;
+    
+    /**
+     * customerRadio - Radio button for customer role
+     * PURPOSE: User selects this to login as customer
+     * CONNECTS TO: Login.fxml fx:id="customerRadio"
+     */
+    @FXML private RadioButton customerRadio;
+    
+    /**
+     * merchantRadio - Radio button for merchant role
+     * PURPOSE: User selects this to login as merchant
+     * CONNECTS TO: Login.fxml fx:id="merchantRadio"
+     */
+    @FXML private RadioButton merchantRadio;
 
     /**
      * dataService - Data access object for database operations
@@ -139,27 +154,43 @@ public class LoginController {
         if (isAuthenticated) {
             /**
              * SUCCESS: User authenticated successfully
-             * Store user email in session for use in other controllers
-             * This allows other screens to know which user is logged in
+             * Check user role from database and verify it matches selected role
              */
-            HistoryController.setCurrentUserEmail(email); // Store email in session
+            String userRole = dataService.getUserRole(email);
+            String selectedRole = merchantRadio.isSelected() ? "MERCHANT" : "CUSTOMER";
             
-            try {
-                System.out.println("Login Successful! Opening Restaurant Selection...");
-                
+            // Verify selected role matches database role
+            if (userRole == null || !userRole.equalsIgnoreCase(selectedRole)) {
+                errorLabel.setText("Invalid role. Please select the correct account type.");
+                return;
+            }
+            
+            if ("MERCHANT".equalsIgnoreCase(userRole)) {
                 /**
-                 * NAVIGATE TO RESTAURANT SELECTION:
-                 * After successful login, redirect user to restaurant selection screen
-                 * where they can choose a restaurant before viewing menu
+                 * MERCHANT: Redirect to merchant dashboard
+                 * Store merchant email in session and navigate to dashboard
                  */
-                Main.switchScene("/fxml/RestaurantSelection.fxml");
-            } catch (IOException e) {
+                MerchantDashboardController.setCurrentMerchantEmail(email);
+                try {
+                    System.out.println("Merchant login successful! Opening Merchant Dashboard...");
+                    Main.switchScene("/fxml/MerchantDashboard.fxml");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    errorLabel.setText("CRITICAL: Could not load MerchantDashboard.fxml");
+                }
+            } else {
                 /**
-                 * ERROR HANDLING:
-                 * If navigation fails, log error and show error message
+                 * CUSTOMER: Redirect to restaurant selection
+                 * Store customer email in session and navigate to restaurant selection
                  */
-                e.printStackTrace();
-                errorLabel.setText("CRITICAL: Could not load RestaurantSelection.fxml");
+                HistoryController.setCurrentUserEmail(email);
+                try {
+                    System.out.println("Login Successful! Opening Restaurant Selection...");
+                    Main.switchScene("/fxml/RestaurantSelection.fxml");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    errorLabel.setText("CRITICAL: Could not load RestaurantSelection.fxml");
+                }
             }
         } else {
             /**
